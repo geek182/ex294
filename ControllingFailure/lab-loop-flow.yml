@@ -1,0 +1,99 @@
+---
+- name: Playbook Control Lab
+  hosts: "{{ myhost | default('localhost')"
+  #vars_files: vars.yml
+  vars:
+    min_ram_mb: 256
+
+    web_service: httpd
+    web_package: httpd
+    ssl_package: mod_ssl
+
+    fw_service: firewalld
+    fw_package: firewalld
+
+    services:
+      - "{{ web_service }}"
+      - "{{ fw_service }}"
+
+    packages:
+      - "{{ web_package }}"
+      - "{{ ssl_package }}"
+      - "{{ fw_package }}"
+
+    ssl_cert_dir: /etc/httpd/conf.d/ssl
+
+    web_config_files:
+      - src: server.key
+        dest: "{{ ssl_cert_dir }}"
+      - src: server.crt
+        dest: "{{ ssl_cert_dir }}"
+      - src: ssl.conf
+        dest: /etc/httpd/conf.d
+      - src: index.html
+        dest: /var/www/html
+
+  tasks:
+    #Fail fast message
+    - name: Fail if hardware doesn't match requirements
+      ansible.builtin.fail:
+      when:
+        - ansible_facts['distribution'] == 'RedHat' and ansible_facts['memtotal_mb'] < min_ram_mb 
+
+# Another way to get nested values
+    - name: shows variables
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts['memory_mb']['real']['total'] }}"
+
+    #Install all packages
+    - name: Ensure required packages are present
+      loop:  "{{ packages }}"
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: present
+    
+    #Enable and start services
+    - name: Start services
+      loop: "{{ services }}"
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+
+    #Block of config tasks
+    - name: SSL configuration
+      block:
+        - name: Check if ssl_cert_dir exists
+          ansible.builtin.file:
+            path: "{{ ssl_cert_dir }}"
+            state: directory
+
+        - name: Copy required certificates
+          notify: Restart web service
+          loop: "{{ web_config_files }}"
+          ansible.builtin.copy:
+            src: "{{ item['src'] }}"
+            dest: "{{ item['dest'] }}"
+
+      rescue:
+        - name: Debug fail
+          ansible.builtin.debug:
+            msg: "One or more of the configuration changes failed, but the web service is still active"
+
+    #Configure the firewall
+    - name: Configure firewalld to accept incoming HTTPS and HTTP traffic
+      loop: 
+        - https
+        - http
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        state: enabled
+        immediate: yes
+        permanent: yes
+
+  #Add handlers
+  handlers:
+    - name: Restart web service
+      ansible.builtin.service:
+        name: "{{ web_service }}"
+        state: restarted
