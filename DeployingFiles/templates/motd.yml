@@ -1,6 +1,6 @@
 ---
 - name: Play - Create welcome message
-  hosts: {{ myserver }} | default('localhost')
+  hosts: {{ myserver  | default('localhost') }}
   tasks:
  
     - name: Create configuration file from template
