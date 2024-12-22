@@ -1,0 +1,37 @@
+---
+- name: Play - Create welcome message
+  hosts: {{ myserver }} | default('localhost')
+  tasks:
+ 
+    - name: Create configuration file from template
+      ansible.builtin.template:
+        src: templates/motd.j2
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: '0644'
+    
+#    - name: Information from hosts
+#      ansible.builtin.stat:
+#        path: /etc/motd
+#      register:
+#        stat_result
+
+#    - name: Debug host information
+#      ansible.builtin.debug:
+#        #        var:  stat_result 
+#        msg: "{{ stat_result }} "
+
+    - name: Copy issue file to directory
+      ansible.builtin.copy:
+        src: files/issue
+        dest: /etc/issue
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Creates symbolic link
+      ansible.builtin.copy:
+        src: /etc/issue
+        dest: /etc/issue.net
+        follow: yes
