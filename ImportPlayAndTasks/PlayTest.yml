@@ -1,0 +1,9 @@
+---
+- name: Test web service
+  hosts: "{{ myserver | default('localhost') }}"
+  become: false
+  tasks:
+    - name: Test if webserver is up and returning a 200
+      ansible.builtin.uri:
+        url: "{{ url }}"
+        status_code: 200
