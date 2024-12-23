@@ -5,14 +5,14 @@
 
     - name: include environment tasks
       ansible.builtin.include_tasks: 
-        tasks/environment.yml
+        environment.yml
       vars:
          package: httpd
          service: httpd
 
     - name: include firewall tasks
       ansible.builtin.include_tasks:
-        tasks/firewall.yml
+        firewall.yml
       vars:
         firewall_pkg: firewalld
         firewall_svc: firewalld
@@ -22,7 +22,7 @@
 
     - name: include placeholder tasks
       ansible.builtin.import_tasks:
-        tasks/placeholder.yml
+        placeholder.yml
       vars:
         file: /var/www/html/index.html
 
