@@ -28,6 +28,6 @@
 
 - name: Test url with a different play
   ansible.builtin.import_playbook:
-    plays/test.yml
+    PlayTest.yml
   vars:
     url: http://myserver
