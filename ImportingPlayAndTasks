@@ -1,0 +1,33 @@
+---
+- name: Configure web server
+  hosts: "{{ myserver | default('localhost') }}"
+  tasks:
+
+    - name: include environment tasks
+      ansible.builtin.include_tasks: 
+        tasks/environment.yml
+      vars:
+         package: httpd
+         service: httpd
+
+    - name: include firewall tasks
+      ansible.builtin.include_tasks:
+        tasks/firewall.yml
+      vars:
+        firewall_pkg: firewalld
+        firewall_svc: firewalld
+        rule:
+          - http
+          - https
+
+    - name: include placeholder tasks
+      ansible.builtin.import_tasks:
+        tasks/placeholder.yml
+      vars:
+        file: /var/www/html/index.html
+
+- name: Test url with a different play
+  ansible.builtin.import_playbook:
+    plays/test.yml
+  vars:
+    url: http://myserver
