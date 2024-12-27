@@ -1,0 +1,51 @@
+---
+- name: Configure users
+  hosts: "{{ my_server| default('locahost') }}"
+  vars:
+    users:
+      - username: user1
+        groups: webadmin
+      - username: user2
+        groups: webadmin
+  #vars_files:
+  #- vars/users_vars.yml
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
+  tasks:
+    - name: create group
+      ansible.builtin.group:
+        name: webadmin
+        state: present
+
+    - name: Create users
+      loop: "{{ users }}"
+      ansible.builtin.user:
+        name: "{{ item['username'] }}"
+        group: "{{ item['groups'] }}"
+        state: present
+
+    - name: Set authorized key taken from file
+      loop: "{{ users }}"
+      ansible.posix.authorized_key:
+        user: "{{ item['username'] }}"
+        state: present
+        key: "{{ lookup('file', 'files/' + item['username'] + '.key.pub') }}"
+
+    - name: set sudo permissions
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/webadmin
+        state: present
+        create: true
+        line: "%webadmin ALL=(ALL) NOPASSWD: ALL"
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: Disable SSH root login
+      notify: "Restart sshd"
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "^PermitRootLogin"
+        line: "PermitRootLogin no"
