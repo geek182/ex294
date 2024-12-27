@@ -1,0 +1,47 @@
+---
+- name: Manage Repos and packages
+  hosts: "{{ my_host|default('localhost') }}"
+  vars:
+    custom_pkg: "simple-agent"
+
+  tasks:
+
+    - name: set facts for installed packages
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Show a custom_pkg package if it installed on the system
+      when: custom_pkg in ansible_facts.packages
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts['packages'][custom_pkg] }}"
+
+    - name: add a yum repository
+      ansible.builtin.yum_repository:
+        name: example-internal
+        file: example
+        description: Example Inc. Internal YUM repo
+        baseurl: http://materials.example.com/yum/repository
+        gpgcheck: true
+
+    - name: Import rpm key
+      ansible.builtin.rpm_key:
+        state: present
+        key: http://materials.example.com/yum/repository/RPM-GPG-KEY-example
+
+    - name: Install custom_pkg
+      ansible.builtin.dnf:
+        name:  "{{ custom_pkg }}"
+        state: present
+
+    - name: gater packages after installation
+      ansible.builtin.package_facts:
+        manager: auto
+
+    #
+    # If package_facts is not executed again the following task will be skipped
+    #
+
+    - name: Show a custom_pkg package if it installed on the system
+      when: custom_pkg in ansible_facts.packages
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts['packages'][custom_pkg] }}"
