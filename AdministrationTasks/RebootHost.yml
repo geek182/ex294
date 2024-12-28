@@ -1,0 +1,8 @@
+---
+- name: Reboot a server
+  hosts: "{{ my_server | default('localhost') }}"
+  become: true
+
+  tasks:
+    - name: Execute a reboot
+      ansible.builtin.reboot:
