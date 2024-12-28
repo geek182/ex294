@@ -4,7 +4,8 @@
   become: true
   vars:
     default_target: "graphical.target"
-
+    #default_target: "multi-user.target"
+    
   tasks:
     - name: Change boot target
       ansible.builtin.command:
