@@ -1,0 +1,18 @@
+---
+- name: Change default boot target
+  hosts: "{{ my_server | default('localhost') }}"
+  become: true
+  vars:
+    default_target: "graphical.target"
+
+  tasks:
+    - name: Change boot target
+      ansible.builtin.command:
+        cmd: systemctl get-default
+      changed_when: false
+      register: target
+
+    - name: Set default boot target
+      ansible.builtin.command:
+        cmd: systemctl set-default {{ default_target }}
+      when: default_target not in target['stdout']                                                 
