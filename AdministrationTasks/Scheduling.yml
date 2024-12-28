@@ -1,0 +1,35 @@
+---
+- name: Scheduling tasks
+  hosts: "{{ my_server| default('localhost') }}"
+  become: true
+
+  tasks:
+    - name: Scheduling with cron
+      ansible.builtin.cron:
+        name: Add date to a file
+        weekday: "1-5"
+        minute: "/*2"
+        hour: "9-16"
+        cron_file: add-date-time
+        user: devops
+        job: "date >> /home/devops/my_datetime_cron_job"
+
+## Result
+###cat /etc/cron.d/add-date-time 
+####Ansible: Add date to a file
+###/*2 9-16 * * 1-5 devops date >> /home/devops/my_datetime_cron_job
+
+    - name: Create a job with AT
+      ansible.posix.at:
+        command: date > ~/at_job_output
+        count: 1
+        units: minutes
+        unique: true
+        state: present
+
+    - name: Remove a cronjob cron
+      ansible.builtin.cron:
+        name: Add date and time to a file
+        user: devops
+        cron_file: add-date-time
+        state: absent
