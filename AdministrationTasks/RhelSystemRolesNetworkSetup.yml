@@ -1,0 +1,16 @@
+---
+- name: Configure a spefic network adapter using rhel system roles
+  hosts: "{{ my_server|default('localhost') }}"
+
+  roles:
+    - name: redhat.rhel_system_roles.network
+      network_state:
+        interfaces:
+          - name: eth1
+            type: ethernet
+            state: up
+            ipv4:
+              enabled: true
+              address:
+                - ip: 172.25.250.32
+                  prefix-length: 24
