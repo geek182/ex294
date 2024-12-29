@@ -1,0 +1,24 @@
+---
+- name: Configure storage with rhel system roles
+  hosts: "{{ my_server|default('localhost') }}"
+
+  roles:
+  # ansible-galaxy collection list
+  # redhat.rhel_system_roles 1.19.3
+    - name: redhat.rhel_system_roles.storage
+      storage_pools:
+        - name: apache-vg
+          disks:
+            - /dev/vdb
+          volumes:
+            - name: content-lv
+              size: 64m
+              fs_type: xfs
+              mount_point: "/var/www"
+              state: present
+
+            - name: logs-lv
+              size: 128m
+              fs_type: xfs
+              mount_point: "/var/log/httpd"
+              state: present
