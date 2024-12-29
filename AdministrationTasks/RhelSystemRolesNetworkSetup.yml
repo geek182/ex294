@@ -3,6 +3,8 @@
   hosts: "{{ my_server|default('localhost') }}"
 
   roles:
+  # ansible-galaxy collection list
+  # redhat.rhel_system_roles 1.19.3
     - name: redhat.rhel_system_roles.network
       network_state:
         interfaces:
