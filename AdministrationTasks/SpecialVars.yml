@@ -1,0 +1,9 @@
+---
+- name: Use some special vars
+  hosts: all
+  tasks:
+    - name: debug
+      ansible.builtin.debug:
+        msg: >
+          "IP : {{ hostvars[inventory_hostname]['ansible_' + ansible_default_ipv4.interface]['ipv4'].address }}"
+          "Device: {{ ansible_default_ipv4.interface }}"
